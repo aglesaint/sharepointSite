@@ -1,0 +1,6 @@
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\bin\Debug\testSite.exe.config
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\obj\Debug\testSite.csprojResolveAssemblyReference.cache
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\bin\Debug\testSite.exe
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\bin\Debug\testSite.pdb
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\obj\Debug\testSite.exe
+\\mac\home\documents\visual studio 2013\Projects\testSite\testSite\obj\Debug\testSite.pdb
