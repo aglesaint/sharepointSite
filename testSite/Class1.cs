@@ -132,66 +132,73 @@ namespace testSite
                          {
                              newWeb.Features.Remove(new Guid(xnf.Attributes["Id"].Value), true);
                          }
-                
-                                        // Groupe administrateur du site
-                                        XmlNode groupAdmin = params_.DocumentElement.SelectSingleNode("/CNPCloud/GroupAdmin");
-                                        GroupCreationInformation gcadmin = new GroupCreationInformation();
-                                        gcadmin.Title = siteUrl_ + groupAdmin.Attributes["Suffix"].Value;
-                                        Group gAdmins = newWeb.SiteGroups.Add(gcadmin);
-                                        gAdmins.Owner = ctx.Web.EnsureUser(params_.DocumentElement.Attributes["SPAdmin"].Value);
-                                        UserCreationInformation uci = new UserCreationInformation();
-                                        uci.LoginName = administrator_;
-                                        gAdmins.Users.Add(uci);
-                                        gAdmins.Update();
-                                        SetRoleForGroup(ctx, newWeb, gAdmins, groupAdmin.Attributes["Role"].Value);
-                      
-                               newWeb.AssociatedOwnerGroup = gAdmins;      */
-                newWeb.Update();
+                 */
 
-                               /*
-                                              // Creation des groupes supplémentaire
-                                              XmlNode groups = params_.DocumentElement.SelectSingleNode("/CNPCloud/GroupsToCreate");
-                                              foreach (XmlNode xng in groups.ChildNodes)
-                                              {
-                                                  GroupCreationInformation gci = new GroupCreationInformation();
-                                                  gci.Title = siteUrl_ + xng.Attributes["Suffix"].Value;
-                                                  Group g = newWeb.SiteGroups.Add(gci);
-                                                  g.Owner = gAdmins;
-                                                  g.Update();
-                                                  SetRoleForGroup(ctx, newWeb, g, xng.Attributes["Role"].Value);
-                                              }
+                /* 
+                 * Groupe administrateur du site en cours 
+                 * 
+                 */
+                  XmlNode groupAdmin = params_.DocumentElement.SelectSingleNode("/CNPCloud/GroupAdmin");
+                  GroupCreationInformation gcadmin = new GroupCreationInformation();
+                  gcadmin.Title = siteUrl_ + groupAdmin.Attributes["Suffix"].Value;
+                  Group gAdmins = newWeb.SiteGroups.Add(gcadmin);
+                  gAdmins.Owner = ctx.Web.EnsureUser(params_.DocumentElement.Attributes["SPAdmin"].Value);
+                  UserCreationInformation uci = new UserCreationInformation();
+                  uci.LoginName = administrator_;
+                  gAdmins.Users.Add(uci);
+                  gAdmins.Update();
+    
+                  SetRoleForGroup(ctx, newWeb, gAdmins, groupAdmin.Attributes["Role"].Value);
+                  newWeb.AssociatedOwnerGroup = gAdmins;
+                  newWeb.Update();
+
+                  /* 
+                   * Creation des groupes supplémentaire 
+                   * ex: <GroupsToCreate>	
+                   *       <Group Suffix="_Collaborateurs" Role="Modification"/>
+                   */
+                  XmlNode groups = params_.DocumentElement.SelectSingleNode("/CNPCloud/GroupsToCreate");
+                     foreach (XmlNode xng in groups.ChildNodes)
+                     {
+                         GroupCreationInformation gci = new GroupCreationInformation();
+                         gci.Title = siteUrl_ + xng.Attributes["Suffix"].Value;
+                         Group g = newWeb.SiteGroups.Add(gci);
+                         g.Owner = gAdmins;
+                         g.Update();
+                         SetRoleForGroup(ctx, newWeb, g, xng.Attributes["Role"].Value);
+                     }
 
 
 
 
 
-                                              /*
-                                              GroupCreationInformation gcAdmin = new GroupCreationInformation();
-                                              gcAdmin.Title = siteUrl_ + "_Admins";
-                                              Group gAdmins = newWeb.SiteGroups.Add(gcAdmin);
-                                              gAdmins.Owner = ctx.Web.EnsureUser(params_.Attributes["SPAdmin"].Value);
-                                              UserCreationInformation uci = new UserCreationInformation();
-                                              uci.LoginName = administrator_;
-                                              gAdmins.Users.Add(uci);
-                                              gAdmins.Update();
-                                              SetRoleForGroup(ctx, newWeb, gAdmins, RoleType.WebDesigner);
+                     /*
+                     GroupCreationInformation gcAdmin = new GroupCreationInformation();
+                     gcAdmin.Title = siteUrl_ + "_Admins";
+                    gAdmins = newWeb.SiteGroups.Add(gcAdmin);
+                     gAdmins.Owner = ctx.Web.EnsureUser(params_.Attributes["SPAdmin"].Value);
+                     UserCreationInformation uci = new UserCreationInformation();
+                     uci.LoginName = administrator_;
+                     gAdmins.Users.Add(uci);
+                     gAdmins.Update();
+                     SetRoleForGroup(ctx, newWeb, gAdmins, RoleType.WebDesigner);
+                     /*
+                      // Collab
+                      GroupCreationInformation gcCollab = new GroupCreationInformation();
+                      gcCollab.Title = siteUrl_ + "_Collaborateurs";
+                      Group gCollab = newWeb.SiteGroups.Add(gcCollab);
+                      gCollab.Owner = gAdmins;
+                      gCollab.Update();
+                      SetRoleForGroup(ctx, newWeb, gCollab, RoleType.Contributor);
 
-                                              // Collab
-                                              GroupCreationInformation gcCollab = new GroupCreationInformation();
-                                              gcCollab.Title = siteUrl_ + "_Collaborateurs";
-                                              Group gCollab = newWeb.SiteGroups.Add(gcCollab);
-                                              gCollab.Owner = gAdmins;
-                                              gCollab.Update();
-                                              SetRoleForGroup(ctx, newWeb, gCollab, RoleType.Contributor);
-
-                                              // Lecteur
-                                              GroupCreationInformation gcVisit = new GroupCreationInformation();
-                                              gcVisit.Title = siteUrl_ + "_Visiteurs";
-                                              Group gVisit = newWeb.SiteGroups.Add(gcVisit);
-                                              gVisit.Owner = gAdmins;
-                                              gVisit.Update();
-                                              SetRoleForGroup(ctx, newWeb, gVisit, RoleType.Reader);
-                                              */
+                      // Lecteur
+                      GroupCreationInformation gcVisit = new GroupCreationInformation();
+                      gcVisit.Title = siteUrl_ + "_Visiteurs";
+                      Group gVisit = newWeb.SiteGroups.Add(gcVisit);
+                      gVisit.Owner = gAdmins;
+                      gVisit.Update();
+                      SetRoleForGroup(ctx, newWeb, gVisit, RoleType.Reader);
+                      */
 
 
                 ctx.ExecuteQuery();
