@@ -17,8 +17,8 @@ namespace testSite
             sw = new StreamWriter(filename);
             sw.WriteLine("\n" + DateTime.Now + " traitement \n");
         }
-        
-      
+
+        public string adminSite { get; set; }
 
         public void WriteLog(string texte) {
            this.sw.WriteLine("\n" + texte);

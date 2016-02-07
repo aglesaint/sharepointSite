@@ -18,8 +18,11 @@ namespace testSite
            string dirLoc = @"c:\CNP\Extranet Cephinet - Centre Karate Nimois";
            // on instancie la classe log
            cLog myLog = new cLog(dirLoc+".txt"); // TODO
-          
-           // on instancie le directory de travail
+           // administrateur de site
+           myLog.adminSite = @"CEPHINET\Administrateur";
+           myLog.WriteLog("\nadministrator_ (ensemble des sites) : " + myLog.adminSite + "\n");
+        
+            // on instancie le directory de travail
            DirectoryInfo rootDir = new DirectoryInfo(dirLoc);
            
            // fonction recursive pour parcourir l'arborescence
@@ -88,12 +91,13 @@ namespace testSite
                     // want to open, delete or modify the file, then
                     // a try-catch block is required here to handle the case
                     // where the file has been deleted since the call to TraverseTree().
-                    if (dirParent.Equals("subDirectories"))
+                    if (dirParent.Equals("subDirectories")){
+                        myLog.WriteLog(Environment.NewLine);
                         myLog.WriteLog("\n\tsous-site : " + root.Name);
-                    else
-                        myLog.WriteLog(fi.FullName);
+                    } else
+                        myLog.WriteLog("\nurlRoot_ : " + fi.FullName);
                     
-                    // on lit le fichier xml
+                    // on lit le fichier xml en cours
                     using (XmlReader reader = XmlReader.Create(fi.FullName))
                     {
                            setXmlInfoFile(reader, fi.Name, myLog);
@@ -106,7 +110,7 @@ namespace testSite
 
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
                 {   
-                    // Resursive call for each subdirectory.
+                    // appel recursif pour chaque sub directory
                     WalkDirectoryTree(dirInfo, myLog, "subDirectories");
                 }
             }
@@ -127,9 +131,26 @@ namespace testSite
                             if (xmlfileName.Equals("folderName.xml"))
                             {
                                 if (reader.Read())
-                                    myLog.WriteLog("\t\tsiteName: " + reader.Value.Trim());
+                                    myLog.WriteLog("\tsiteUrl_: " + reader.Value.Trim());
                             }
                             break;
+                        case "title":
+                            if (reader.Read())
+                                myLog.WriteLog("\ttitle_: " + reader.Value.Trim());
+                            break;
+                        case "formName":
+                            if (reader.Read())
+                                myLog.WriteLog("\ttitle_: " + reader.Value.Trim());
+                            break;
+                        case "h_Authors":
+                            if (reader.Read())
+                                myLog.WriteLog("\tauthors_: " + reader.Value.Trim());
+                            break;
+                        case "attachmentName":
+                             if (reader.Read())
+                                 myLog.WriteLog("\tattach_: " + reader.Value.Trim());
+                            break;
+
                     }
                 }
             }  
