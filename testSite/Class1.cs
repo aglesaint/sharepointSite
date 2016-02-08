@@ -105,7 +105,6 @@ namespace testSite
 
             using (ClientContext ctx = new ClientContext(urlRoot_))
             {
-
                 ctx.Credentials = SelectCreds(params_);
                 Web rootWeb = ctx.Web;
                 ctx.Load(rootWeb);

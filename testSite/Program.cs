@@ -10,24 +10,28 @@ using System.Xml;
 namespace testSite
 {
     class Program
-    {     
+    {
+
         static void Main(string[] args)
         {
-          
+ 
            // directory root de travail
            string dirLoc = @"c:\CNP\Extranet Cephinet - Centre Karate Nimois";
            // on instancie la classe log
            cLog myLog = new cLog(dirLoc+".txt"); // TODO
-           // administrateur de site
+           // activer le mode test, on ne passe pas par le CSOM
+           myLog.testMode = true;
+            
+            // administrateur de site
            myLog.adminSite = @"CEPHINET\Administrateur";
            myLog.WriteLog("\nadministrator_ (ensemble des sites) : " + myLog.adminSite + "\n");
         
             // on instancie le directory de travail
            DirectoryInfo rootDir = new DirectoryInfo(dirLoc);
-           
+
            // fonction recursive pour parcourir l'arborescence
            WalkDirectoryTree(rootDir, myLog, "directoryParent");
-
+           myLog.CloseLog();
                    /* 
                        try
                        {
@@ -60,7 +64,8 @@ namespace testSite
                */
 
         } // class main
-
+        
+        // parcours de l'arborescence
         static void WalkDirectoryTree(System.IO.DirectoryInfo root, cLog myLog, string dirParent)
         {
             System.IO.FileInfo[] files = null;
@@ -81,31 +86,41 @@ namespace testSite
             {
                 myLog.WriteLog(e.Message);
             }
-
+            
             if (files != null)
             {
-                // on boucle sur les fichiers xml
+                // on boucle sur 2 les fichiers xml de chaque directory
                 foreach (System.IO.FileInfo fi in files)
                 {
-                    // In this example, we only access the existing FileInfo object. If we
-                    // want to open, delete or modify the file, then
-                    // a try-catch block is required here to handle the case
-                    // where the file has been deleted since the call to TraverseTree().
-                    if (dirParent.Equals("subDirectories")){
+                    if (dirParent.Equals("subDirectories"))
+                    {
                         myLog.WriteLog(Environment.NewLine);
                         myLog.WriteLog("\n\tsous-site : " + root.Name);
-                    } else
+                    }
+                    else {
+                        myLog.urlRoot = fi.FullName;
                         myLog.WriteLog("\nurlRoot_ : " + fi.FullName);
-                    
+                    }
                     // on lit le fichier xml en cours
                     using (XmlReader reader = XmlReader.Create(fi.FullName))
                     {
-                           setXmlInfoFile(reader, fi.Name, myLog);
-                           reader.Close();
+                        setXmlInfoFile(reader, fi.Name, myLog);
+                       // on traite le xml contant l'arborescence SP
+                       if (!fi.Name.Equals("folderName.xml"))
+                            callCSOM(reader, myLog);
+
+                        reader.Close();
                     }
-                }
-             
-                // on boucle sur les subdirectories du directory parent.
+                } // foreach
+                
+              } //if
+
+                /* 
+                 * on boucle de maniere recursives
+                 * sur les subdirectories du directory actuel.
+                 *  
+                 * 
+                 */
                 subDirs = root.GetDirectories();
 
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
@@ -113,10 +128,50 @@ namespace testSite
                     // appel recursif pour chaque sub directory
                     WalkDirectoryTree(dirInfo, myLog, "subDirectories");
                 }
-            }
         } //WalkDirectoryTree
 
+        /* 
+        * appel du CSOM avec le second fichier XML
+        */
+        static bool callCSOM(XmlReader reader, cLog myLog)
+        {
+            // on traite le CSOM une fois les 2 fichiers xml parses
+            if (reader != null)
+            {
+                XmlDocument params_ = new XmlDocument();
+                params_.Load(reader);
 
+                string urlRoot_ = myLog.urlRoot;
+                string siteUrl_ = myLog.siteUrl;
+                string title_ = myLog.title;
+                string administrator_ = myLog.adminSite;
+
+                myLog.WriteLog("========== on passe par le CSOM ==========");
+
+                if (!myLog.testMode)
+                {
+                    try
+                    {
+                        CSOMCalls objSite = new CSOMCalls();
+                        objSite.CreateSite(urlRoot_, siteUrl_, title_, administrator_, params_);
+                    }
+                    catch (Exception ex)
+                    {
+                        myLog.WriteLog("\n" + ex);
+                    }
+                    finally
+                    {
+                        if (reader != null) reader.Close();
+                    }
+                }
+            }
+            return true; // TODO
+        }
+
+        /* 
+         * lecture des fichiers xml
+         * 
+         */
         static void setXmlInfoFile(XmlReader reader, string xmlfileName, cLog myLog){
             while (reader.Read())
             {
@@ -130,13 +185,17 @@ namespace testSite
                         case "name":
                             if (xmlfileName.Equals("folderName.xml"))
                             {
-                                if (reader.Read())
+                                if (reader.Read()) {
+                                    myLog.siteUrl = reader.Value.Trim();
                                     myLog.WriteLog("\tsiteUrl_: " + reader.Value.Trim());
+                                }
                             }
                             break;
                         case "title":
-                            if (reader.Read())
+                            if (reader.Read())  {
+                                myLog.title = reader.Value.Trim();
                                 myLog.WriteLog("\ttitle_: " + reader.Value.Trim());
+                             }
                             break;
                         case "formName":
                             if (reader.Read())
@@ -150,7 +209,6 @@ namespace testSite
                              if (reader.Read())
                                  myLog.WriteLog("\tattach_: " + reader.Value.Trim());
                             break;
-
                     }
                 }
             }  

@@ -20,6 +20,15 @@ namespace testSite
 
         public string adminSite { get; set; }
 
+        public string urlRoot { get; set; }
+
+        public string siteUrl { get; set; }
+
+        public string title { get; set; }
+
+        public bool testMode { get; set; }
+
+
         public void WriteLog(string texte) {
            this.sw.WriteLine("\n" + texte);
         }
