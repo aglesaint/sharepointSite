@@ -221,9 +221,16 @@ namespace testSite
 
         private ICredentials SelectCreds(XmlDocument params_)
         {
+
+            // test cred
+            return new NetworkCredential(@"CEPHINET\Administrateur", "spiu90WjV");
+            
+
+            /*
             XmlNode xmlCreds = params_.DocumentElement.SelectSingleNode("/CNPCloud/Credentials");
             if (xmlCreds == null) return CredentialCache.DefaultCredentials;
             else return new NetworkCredential(xmlCreds.Attributes["Login"].Value, xmlCreds.Attributes["Password"].Value, xmlCreds.Attributes["Domain"].Value);
+              */
         }
     }
 }

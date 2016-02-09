@@ -20,6 +20,8 @@ namespace testSite
 
         public string adminSite { get; set; }
 
+        public string spRoot { get; set; }
+        
         public string urlRoot { get; set; }
 
         public string siteUrl { get; set; }

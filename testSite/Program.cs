@@ -14,19 +14,20 @@ namespace testSite
 
         static void Main(string[] args)
         {
- 
            // directory root de travail
            string dirLoc = @"c:\CNP\Extranet Cephinet - Centre Karate Nimois";
            // on instancie la classe log
            cLog myLog = new cLog(dirLoc+".txt"); // TODO
+           // sharepoint root site
+           myLog.spRoot = @"http://sharepoint.cephinet.info/my/personal/administrateur/"; 
            // activer le mode test, on ne passe pas par le CSOM
            myLog.testMode = true;
             
-            // administrateur de site
+           // administrateur de site
            myLog.adminSite = @"CEPHINET\Administrateur";
            myLog.WriteLog("\nadministrator_ (ensemble des sites) : " + myLog.adminSite + "\n");
         
-            // on instancie le directory de travail
+           // on instancie le directory de travail
            DirectoryInfo rootDir = new DirectoryInfo(dirLoc);
 
            // fonction recursive pour parcourir l'arborescence
@@ -95,10 +96,13 @@ namespace testSite
                     if (dirParent.Equals("subDirectories"))
                     {
                         myLog.WriteLog(Environment.NewLine);
+                        // positionner le site parent
+                        // TODO
+                        // urlRoot
                         myLog.WriteLog("\n\tsous-site : " + root.Name);
                     }
                     else {
-                        myLog.urlRoot = fi.FullName;
+                        myLog.urlRoot = myLog.spRoot + fi.FullName;
                         myLog.WriteLog("\nurlRoot_ : " + fi.FullName);
                     }
                     // on lit le fichier xml en cours
@@ -148,12 +152,24 @@ namespace testSite
 
                 myLog.WriteLog("========== on passe par le CSOM ==========");
 
-                if (!myLog.testMode)
-                {
                     try
                     {
                         CSOMCalls objSite = new CSOMCalls();
-                        objSite.CreateSite(urlRoot_, siteUrl_, title_, administrator_, params_);
+                        /* 
+                         * appel du CSOM avec le second fichier XML
+                         * on contrôle l'existence du site
+                         * ex :  siteUrl_ = "http://sharepoint.cephinet.info/my/personal/administrateur/testAuto9/";
+                         */
+                        if (!objSite.CheckSite(siteUrl_, params_)){ 
+                            if (!myLog.testMode)
+                            {
+                                objSite.CreateSite(urlRoot_, siteUrl_, title_, administrator_, params_);
+                            }
+                            else
+                                myLog.WriteLog("\nmode test activé : le site est crée ici " + urlRoot_);
+                        }
+                        else
+                            myLog.WriteLog("\n le site : " + siteUrl_ + " existe déjà");
                     }
                     catch (Exception ex)
                     {
@@ -163,7 +179,6 @@ namespace testSite
                     {
                         if (reader != null) reader.Close();
                     }
-                }
             }
             return true; // TODO
         }
