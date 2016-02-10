@@ -30,9 +30,12 @@ namespace testSite
 
         public bool testMode { get; set; }
 
+        public bool isRootDirectory { get; set; }
+        
 
         public void WriteLog(string texte) {
            this.sw.WriteLine("\n" + texte);
+           Console.WriteLine("\n" + texte);
         }
 
         public void CloseLog() {
