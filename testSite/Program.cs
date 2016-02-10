@@ -13,39 +13,34 @@ namespace testSite
     {
         static void Main(string[] args)
         {
-           // directory root de travail
-           string dirLoc = @"c:\CNP\Extranet Cephinet - Centre Karate Nimois";
-           // on instancie la classe log
-           cLog myLog = new cLog(dirLoc+".txt"); // TODO
-           // sharepoint root site
-           myLog.spRoot = @"http://sharepoint.cephinet.info/ckn/";
-           // nous sommes au niveau root
-           myLog.isRootDirectory = true;
+           cConfig myConfig = new cConfig();  
+           cLog myLog = new cLog(myConfig.rootDirectory + ".txt");
+
            // activer le mode test, on ne passe pas par le CSOM
-           myLog.testMode = true;
-           myLog.WriteLog("\nmode test activé");
+           myLog.WriteLog("\nmode test " + myConfig.testMode);
+
            // administrateur de site
            myLog.adminSite = @"CEPHINET\Administrateur";
            myLog.WriteLog("\nadministrator_ (ensemble des sites) : " + myLog.adminSite + "\n");
-        
+
            // on instancie le directory de travail
-           DirectoryInfo rootDir = new DirectoryInfo(dirLoc);
+           DirectoryInfo rootDir = new DirectoryInfo(myConfig.rootDirectory);
          
            // site root
-           myLog.spRoot = myLog.spRoot + rootDir.Name;
-           string currentUrl = myLog.spRoot;
+           myConfig.spSiteRoot = myConfig.spSiteRoot + rootDir.Name;
+           string currentUrl = myConfig.spSiteRoot;
            // fonction recursive pour parcourir l'arborescence
-           WalkDirectoryTree(rootDir, currentUrl, myLog);
+           WalkDirectoryTree(rootDir, currentUrl, myLog, myConfig);
            myLog.CloseLog();
         } // class main
         
         // parcours de l'arborescence
-        static void WalkDirectoryTree(System.IO.DirectoryInfo root, string currentUrl, cLog myLog)
+        static void WalkDirectoryTree(System.IO.DirectoryInfo root, string currentUrl, cLog myLog, cConfig myConfig)
         {
             System.IO.FileInfo[] files = null;
             System.IO.DirectoryInfo[] subDirs = null;
 
-            if (!myLog.isRootDirectory) currentUrl = myLog.spRoot + "/" + root.Name;
+            if (!myConfig.isRootDirectory) currentUrl = myConfig.spSiteRoot + "/" + root.Name;
            
             myLog.WriteLog("\t(currentUrl) : " + currentUrl); 
             
@@ -67,7 +62,6 @@ namespace testSite
             
             if (files != null)
             {
-               
                 // on boucle sur 2 les fichiers xml de chaque directory
                 foreach (System.IO.FileInfo fi in files)
                 {
@@ -75,9 +69,9 @@ namespace testSite
                     using (XmlReader reader = XmlReader.Create(fi.FullName))
                     {
                         setXmlInfoFile(reader, fi.Name, myLog);
-                       // on traite le xml contant l'arborescence SP
-                       if (!fi.Name.Equals("folderName.xml"))
-                           callCSOM(reader, currentUrl, myLog);
+                       // on ne traite pas le xml contant le nom, ni le root de 1er niveau
+                        if (!fi.Name.Equals("folderName.xml"))
+                           callCSOM(reader, currentUrl, myLog, myConfig);
 
                         reader.Close();
                     }
@@ -88,19 +82,19 @@ namespace testSite
                  * on boucle de maniere recursives
                  * sur les subdirectories du directory actuel.
                  */
-                myLog.isRootDirectory = false;
+                myConfig.isRootDirectory = false;
                 subDirs = root.GetDirectories();
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
                 {   
                     // appel recursif pour chaque sub directory
-                    WalkDirectoryTree(dirInfo, currentUrl, myLog);// current root TODO
+                    WalkDirectoryTree(dirInfo, currentUrl, myLog, myConfig);
                 }
         } //WalkDirectoryTree
 
         /* 
         * appel du CSOM avec le second fichier XML
         */
-        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog)
+        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog, cConfig myConfig)
         {
             // on traite le CSOM une fois les 2 fichiers xml parses
             if (reader != null)
@@ -108,7 +102,6 @@ namespace testSite
                 XmlDocument params_ = new XmlDocument();
                 params_.Load(reader);
 
-                string urlRoot_ = currentUrl;
                 string siteUrl_ = myLog.siteUrl;
                 string title_ = myLog.title;
                 string administrator_ = myLog.adminSite;
@@ -124,11 +117,10 @@ namespace testSite
                          * ex :  siteUrl_ = "http://sharepoint.cephinet.info/my/personal/administrateur/testAuto9/";
                          */
                         if (!objSite.CheckSite(currentUrl, params_)) { 
-                            if (!myLog.testMode)
+                            if (!myConfig.testMode)
                             {
-                                objSite.CreateSite(urlRoot_, siteUrl_, title_, administrator_, params_);
-                            }
-                                
+                                objSite.CreateSite(currentUrl, siteUrl_, title_, administrator_, params_);
+                            }        
                         }
                         else
                             myLog.WriteLog("\n le site : " + siteUrl_ + " existe déjà");
@@ -162,8 +154,7 @@ namespace testSite
                             {
                                 if (reader.Read()) {
                                     myLog.siteUrl = reader.Value.Trim();
-                                    myLog.WriteLog("\t(old) siteUrl_: " + reader.Value.Trim());
-                                   
+                                    myLog.WriteLog("\t(old) siteUrl_: " + reader.Value.Trim()); 
                                 }
                             }
                             break;
