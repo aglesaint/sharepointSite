@@ -19,29 +19,33 @@ namespace testSite
            // activer le mode test, on ne passe pas par le CSOM
            myLog.WriteLog("\nmode test " + myConfig.testMode);
 
-           // administrateur de site
-           myLog.adminSite = @"CEPHINET\Administrateur";
-           myLog.WriteLog("\nadministrator_ (ensemble des sites) : " + myLog.adminSite + "\n");
-
            // on instancie le directory de travail
            DirectoryInfo rootDir = new DirectoryInfo(myConfig.rootDirectory);
          
            // site root
            myConfig.spSiteRoot = myConfig.spSiteRoot + rootDir.Name;
            string currentUrl = myConfig.spSiteRoot;
-           // fonction recursive pour parcourir l'arborescence
+          
+          // fonction recursive pour parcourir l'arborescence
            WalkDirectoryTree(rootDir, currentUrl, myLog, myConfig);
            myLog.CloseLog();
+
         } // class main
-        
-        // parcours de l'arborescence
+
+        /* 
+         * parcours de l'arborescences
+         * on ne lit pas le root principal qui est crée à la main  
+         */
         static void WalkDirectoryTree(System.IO.DirectoryInfo root, string currentUrl, cLog myLog, cConfig myConfig)
         {
+            if (myConfig.isRootDirectory) goto nextStep;
+           
             System.IO.FileInfo[] files = null;
             System.IO.DirectoryInfo[] subDirs = null;
 
             if (!myConfig.isRootDirectory) currentUrl = myConfig.spSiteRoot + "/" + root.Name;
-           
+            
+            myLog.WriteLog(Environment.NewLine + ">>>>>>>>>>>>>>>>>>>>>>>>");
             myLog.WriteLog("\t(currentUrl) : " + currentUrl); 
             
             // recuperer les fichiers xml
@@ -69,19 +73,33 @@ namespace testSite
                     using (XmlReader reader = XmlReader.Create(fi.FullName))
                     {
                         setXmlInfoFile(reader, fi.Name, myLog);
-                       // on ne traite pas le xml contant le nom, ni le root de 1er niveau
-                        if (!fi.Name.Equals("folderName.xml"))
-                           callCSOM(reader, currentUrl, myLog, myConfig);
+                        switch (fi.Name)  {
+                            case "folderName.xml":
+                                // on ne traite pas le xml contant le nom, ni le root de 1er niveau
+                              break;
 
-                        reader.Close();
+                             default:
+                                if (fi.Name.Substring(0, 5) == "page_")
+                                    myLog.WriteLog(Environment.NewLine + "\tcréation de la liste de document (" + fi.Name + ")");
+
+                                if (fi.Name.Substring(0, 5) == "room_")
+                                    myLog.WriteLog(Environment.NewLine + "\tcréation d'un sous-site (" + fi.Name + ")");
+
+
+                                callCSOM(reader, currentUrl, myLog, myConfig);
+                                break;
+                        
+                        }
+                       reader.Close();
                     }
-                } // foreach
+                }
               } //if
 
                 /* 
                  * on boucle de maniere recursives
                  * sur les subdirectories du directory actuel.
                  */
+        nextStep:
                 myConfig.isRootDirectory = false;
                 subDirs = root.GetDirectories();
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
@@ -102,12 +120,9 @@ namespace testSite
                 XmlDocument params_ = new XmlDocument();
                 params_.Load(reader);
 
-                string siteUrl_ = myLog.siteUrl;
+                string siteUrl_ = myLog.siteUrl; // TODO
                 string title_ = myLog.title;
-                string administrator_ = myLog.adminSite;
-
-                myLog.WriteLog(Environment.NewLine + "========== on passe par le CSOM ==========");
-
+                myLog.WriteLog("\t========== on passe par le CSOM ==========" + Environment.NewLine);
                     try
                     {
                         CSOMCalls objSite = new CSOMCalls();
@@ -119,7 +134,7 @@ namespace testSite
                         if (!objSite.CheckSite(currentUrl, params_)) { 
                             if (!myConfig.testMode)
                             {
-                                objSite.CreateSite(currentUrl, siteUrl_, title_, administrator_, params_);
+                                objSite.CreateSite(currentUrl, siteUrl_, title_, myConfig.adminSite, params_); // TODO currentUrl + siteUrl
                             }        
                         }
                         else

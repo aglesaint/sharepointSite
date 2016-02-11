@@ -22,6 +22,8 @@ namespace testSite
                 this.login = xmlnode.Attributes["Login"].Value;
                 this.password = xmlnode.Attributes["Password"].Value;
 
+                this.adminSite = this.domain + "\\" + this.login;
+
                 xmlnode = params_.DocumentElement.SelectSingleNode("/CEPHINET/Configuration/MasterRoot");
                 // if (xmlnode == null) return ...
                 this.rootDirectory = xmlnode.Attributes["directory"].Value;
@@ -39,6 +41,7 @@ namespace testSite
         public string domain { get; set; }
         public string login { get; set; }
         public string password { get; set; }
+        public string adminSite { get; set; }
         public string rootDirectory { get; set; }
         public bool isRootDirectory { get; set; }
         public bool testMode { get; set; }
