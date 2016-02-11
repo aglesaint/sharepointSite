@@ -32,7 +32,7 @@ namespace testSite
 
                 xmlnode = params_.DocumentElement.SelectSingleNode("/CEPHINET/Configuration/SpSiteRoot");
                 // if (xmlnode == null) return ...
-                this.spSiteRoot = xmlnode.Attributes["url"].Value;
+                this.spRoot = xmlnode.Attributes["url"].Value;
 
                 reader.Close();
             }
@@ -46,5 +46,6 @@ namespace testSite
         public bool isRootDirectory { get; set; }
         public bool testMode { get; set; }
         public string spSiteRoot { get; set; }
+        public string spRoot { get; set; }
     }
 }

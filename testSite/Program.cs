@@ -23,10 +23,10 @@ namespace testSite
            DirectoryInfo rootDir = new DirectoryInfo(myConfig.rootDirectory);
          
            // site root
-           myConfig.spSiteRoot = myConfig.spSiteRoot + rootDir.Name;
+           myConfig.spSiteRoot = myConfig.spRoot + rootDir.Name;
            string currentUrl = myConfig.spSiteRoot;
           
-          // fonction recursive pour parcourir l'arborescence
+           // fonction recursive pour parcourir l'arborescence
            WalkDirectoryTree(rootDir, currentUrl, myLog, myConfig);
            myLog.CloseLog();
 
@@ -69,6 +69,7 @@ namespace testSite
                 // on boucle sur 2 les fichiers xml de chaque directory
                 foreach (System.IO.FileInfo fi in files)
                 {
+                    string whoAmI = "";
                     // on lit le fichier xml en cours
                     using (XmlReader reader = XmlReader.Create(fi.FullName))
                     {
@@ -79,14 +80,16 @@ namespace testSite
                               break;
 
                              default:
-                                if (fi.Name.Substring(0, 5) == "page_")
+                                 if (fi.Name.Substring(0, 5) == "page_") { 
                                     myLog.WriteLog(Environment.NewLine + "\tcréation de la liste de document (" + fi.Name + ")");
-
-                                if (fi.Name.Substring(0, 5) == "room_")
+                                    whoAmI = "page";
+                                 }
+                                if (fi.Name.Substring(0, 5) == "room_") {
                                     myLog.WriteLog(Environment.NewLine + "\tcréation d'un sous-site (" + fi.Name + ")");
+                                    whoAmI = "room";
+                                }
 
-
-                                callCSOM(reader, currentUrl, myLog, myConfig);
+                                callCSOM(reader, currentUrl, myLog, myConfig, whoAmI);
                                 break;
                         
                         }
@@ -110,9 +113,9 @@ namespace testSite
         } //WalkDirectoryTree
 
         /* 
-        * appel du CSOM avec le second fichier XML
-        */
-        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog, cConfig myConfig)
+         * appel du CSOM avec le second fichier XML
+         */
+        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog, cConfig myConfig, string whoAmI)
         {
             // on traite le CSOM une fois les 2 fichiers xml parses
             if (reader != null)
@@ -126,19 +129,27 @@ namespace testSite
                     try
                     {
                         CSOMCalls objSite = new CSOMCalls();
-                        /* 
-                         * appel du CSOM avec le second fichier XML
-                         * on contrôle l'existence du site
-                         * ex :  siteUrl_ = "http://sharepoint.cephinet.info/my/personal/administrateur/testAuto9/";
-                         */
-                        if (!objSite.CheckSite(currentUrl, params_)) { 
-                            if (!myConfig.testMode)
-                            {
-                                objSite.CreateSite(currentUrl, siteUrl_, title_, myConfig.adminSite, params_); // TODO currentUrl + siteUrl
-                            }        
+                        switch (whoAmI)
+                        {
+                            case "page":
+                                string sUrl = "30 ans 001-028";
+                                string title = sUrl;
+                                objSite.addDocumentLibrary(myConfig.spRoot, sUrl, title_, myConfig.adminSite, params_);
+                                break;
+
+                            case "room":
+                                if (!objSite.CheckSite(currentUrl, params_))
+                                {
+                                    if (!myConfig.testMode)
+                                    {
+                                        objSite.CreateSite(currentUrl, siteUrl_, title_, myConfig.adminSite, params_); // TODO currentUrl + siteUrl
+                                    }
+                                }
+                                else
+                                    myLog.WriteLog("\n le site : " + siteUrl_ + " existe déjà");
+                                break;
+
                         }
-                        else
-                            myLog.WriteLog("\n le site : " + siteUrl_ + " existe déjà");
                     }
                     catch (Exception ex)
                     {

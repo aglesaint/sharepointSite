@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Microsoft.SharePoint.Client;
 using System.Net;
-using System.Xml;
 using System.IO;
+using System.Xml;
 
 namespace testSite
 {
@@ -232,5 +231,74 @@ namespace testSite
             else return new NetworkCredential(xmlCreds.Attributes["Login"].Value, xmlCreds.Attributes["Password"].Value, xmlCreds.Attributes["Domain"].Value);
               */
         }
+
+
+
+        public string addDocumentLibrary(string urlRoot_, string siteUrl_, string title_, string administrator_, XmlDocument params_)
+        {
+            using (ClientContext ctx = new ClientContext(urlRoot_))
+            {
+                try
+                {
+                  ctx.Credentials = SelectCreds(params_);
+                  Web rootWeb = ctx.Web;
+                  ctx.Load(rootWeb);
+                  ctx.ExecuteQuery();
+
+                  ListCreationInformation lci = new ListCreationInformation();
+                  lci.Title = title_;
+                  lci.Description = "";
+                  lci.QuickLaunchOption = QuickLaunchOptions.On;
+                  lci.TemplateType = (Int32)ListTemplateType.DocumentLibrary;
+                  ctx.Web.Lists.Add(lci);
+
+            
+                  string filePath = @"C:\CNP\Extranet Cephinet - Centre Karate Nimois\30 ans 001-028\30ans 001-028.htm";
+                  List documentLibrary = ctx.Web.Lists.GetByTitle(title_);
+                  
+                  FileCreationInformation newFile = new FileCreationInformation();
+              
+                   // test
+ /*
+                 XmlNode attach = params_.DocumentElement.SelectSingleNode("Universalid");
+                         foreach (XmlNode att in attach.ChildNodes)
+                         {
+                             foo2 = "test"; // att.Attributes["attachmentName"].Value;
+                         }
+                
+*/
+                // fin test
+
+
+                  newFile.Overwrite = true;
+                  newFile.Content = System.IO.File.ReadAllBytes(filePath);
+                  newFile.Url = System.IO.Path.GetFileName(filePath);
+                //  newFile.Url = destFileName;
+                  Microsoft.SharePoint.Client.File uploadFile = documentLibrary.RootFolder.Files.Add(newFile);
+            
+                     uploadFile.ListItemAllFields.Update();
+
+
+
+
+
+
+
+
+
+
+
+                  ctx.ExecuteQuery();
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            }
+
+
+            return "OK";
+        }
+
     }
 }
