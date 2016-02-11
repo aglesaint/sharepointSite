@@ -234,7 +234,7 @@ namespace testSite
 
 
 
-        public string addDocumentLibrary(string urlRoot_, string siteUrl_, string title_, string administrator_, XmlDocument params_)
+        public string addDocumentLibrary(string urlRoot_, string siteUrl_, string title_, string administrator_, XmlDocument params_, string xmlFilePathName)
         {
             using (ClientContext ctx = new ClientContext(urlRoot_))
             {
@@ -253,41 +253,46 @@ namespace testSite
                   ctx.Web.Lists.Add(lci);
 
             
-                  string filePath = @"C:\CNP\Extranet Cephinet - Centre Karate Nimois\30 ans 001-028\30ans 001-028.htm";
+                //  string filePath = @"C:\CNP\Extranet Cephinet - Centre Karate Nimois\30 ans 001-028\30ans 001-028.htm";
                   List documentLibrary = ctx.Web.Lists.GetByTitle(title_);
-                  
-                  FileCreationInformation newFile = new FileCreationInformation();
-              
+
+
+
+                 int pos = xmlFilePathName.LastIndexOf("\\");
+                 string strFilePath = xmlFilePathName.Substring(0, pos + 1);
+
                    // test
- /*
-                 XmlNode attach = params_.DocumentElement.SelectSingleNode("Universalid");
-                         foreach (XmlNode att in attach.ChildNodes)
-                         {
-                             foo2 = "test"; // att.Attributes["attachmentName"].Value;
-                         }
-                
-*/
+                  using (XmlReader reader = XmlReader.Create(xmlFilePathName))
+                  {
+                      while (reader.Read())
+                      {
+                          if (reader.IsStartElement())
+                          {
+                              string filePath;
+                              switch (reader.Name)
+                              {
+                                  case "attachmentName":
+                                      if (reader.Read())
+                                      {
+                                          FileCreationInformation newFile = new FileCreationInformation();
+                                          filePath = strFilePath + reader.Value.Trim();
+                                         newFile.Overwrite = true;
+                                         newFile.Content = System.IO.File.ReadAllBytes(filePath);
+                                         newFile.Url = System.IO.Path.GetFileName(filePath);
+                                         //  newFile.Url = destFileName;
+                                         Microsoft.SharePoint.Client.File uploadFile =                                      documentLibrary.RootFolder.Files.Add(newFile);
+                                         uploadFile.ListItemAllFields.Update();
+
+                                      }
+                                           
+                                      break;
+                              }
+                          }
+                      }
+                  }
+                  
+          
                 // fin test
-
-
-                  newFile.Overwrite = true;
-                  newFile.Content = System.IO.File.ReadAllBytes(filePath);
-                  newFile.Url = System.IO.Path.GetFileName(filePath);
-                //  newFile.Url = destFileName;
-                  Microsoft.SharePoint.Client.File uploadFile = documentLibrary.RootFolder.Files.Add(newFile);
-            
-                     uploadFile.ListItemAllFields.Update();
-
-
-
-
-
-
-
-
-
-
-
                   ctx.ExecuteQuery();
                 }
                 catch (Exception ex)

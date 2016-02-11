@@ -89,7 +89,7 @@ namespace testSite
                                     whoAmI = "room";
                                 }
 
-                                callCSOM(reader, currentUrl, myLog, myConfig, whoAmI);
+                                callCSOM(reader, currentUrl, myLog, myConfig, whoAmI, fi.FullName);
                                 break;
                         
                         }
@@ -115,12 +115,12 @@ namespace testSite
         /* 
          * appel du CSOM avec le second fichier XML
          */
-        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog, cConfig myConfig, string whoAmI)
+        static bool callCSOM(XmlReader reader, string currentUrl, cLog myLog, cConfig myConfig, string whoAmI, string xmlFilePathName)
         {
             // on traite le CSOM une fois les 2 fichiers xml parses
             if (reader != null)
             {
-                XmlDocument params_ = new XmlDocument();
+                XmlDocument params_ = new XmlDocument(); // TODO
                 params_.Load(reader);
 
                 string siteUrl_ = myLog.siteUrl; // TODO
@@ -134,7 +134,7 @@ namespace testSite
                             case "page":
                                 string sUrl = "30 ans 001-028";
                                 string title = sUrl;
-                                objSite.addDocumentLibrary(myConfig.spRoot, sUrl, title_, myConfig.adminSite, params_);
+                                objSite.addDocumentLibrary(myConfig.spRoot, sUrl, title_, myConfig.adminSite, params_, xmlFilePathName);
                                 break;
 
                             case "room":
